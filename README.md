@@ -23,3 +23,6 @@ This will show you all the available options/parameters and explains them in-dep
      ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0783", ATTR{idProduct}=="5725", MODE="0666"
   2. Then `sudo udevadm control -R`
   3. Replug the device
+
+
+### меняем проект под осцилограф 1008C :)
