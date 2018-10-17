@@ -1,4 +1,5 @@
-# Hantek1008CDriver
+# Hantek1008C
+# меняем проект c 1008 под осцилограф 1008C :)
 
 * forked project *
 
@@ -25,4 +26,3 @@ This will show you all the available options/parameters and explains them in-dep
   3. Replug the device
 
 
-### меняем проект под осцилограф 1008C :)
