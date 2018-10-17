@@ -1,4 +1,6 @@
-# Hantek1008Driver
+# Hantek1008CDriver
+
+* forked project *
 
 This project provides the ability to use Hantek 1008 USB-oscilloscopes without the proprietary software on Linux and Windows (not tested). You can include the Hantek1008 from 'hantek1008.py' class in your project, to get access to the features of the device, or use the csvexport.py Python application to gain data and save it to a file.
 

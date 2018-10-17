@@ -31,7 +31,7 @@ assert sys.version_info >= (3, 6)
 """
 
 
-class Hantek1008Raw:
+class Hantek1008CRaw:
     """
     This class communicates to a Hantek1008 device via USB.
     It supports configuring the device (set vertical scale, sampling frequency, waveform generator,..)
@@ -67,16 +67,16 @@ class Hantek1008Raw:
         """
 
         assert isinstance(vertical_scale_factor, float) \
-               or len(vertical_scale_factor) == Hantek1008Raw.channel_count()
+               or len(vertical_scale_factor) == Hantek1008CRaw.channel_count()
 
         self.__ns_per_div: int = ns_per_div  # one value for all channels
 
         self.__active_channels: List[int] = copy.deepcopy(active_channels) if active_channels is not None\
-            else Hantek1008Raw.valid_channel_ids()
+            else Hantek1008CRaw.valid_channel_ids()
         self.__active_channels = sorted(self.__active_channels)  # some methods depend of ascending order of this
 
         # one vertical scale factor (float) per channel
-        self.__vertical_scale_factors: List[float] = [vertical_scale_factor] * Hantek1008Raw.channel_count() \
+        self.__vertical_scale_factors: List[float] = [vertical_scale_factor] * Hantek1008CRaw.channel_count() \
             if isinstance(vertical_scale_factor, float) \
             else copy.deepcopy(vertical_scale_factor)  # scale factor per channel
 
@@ -212,21 +212,21 @@ class Hantek1008Raw:
 
     @staticmethod
     def _vertical_scale_id_to_factor(vs_id: int) -> float:
-        assert 1 <= vs_id <= len(Hantek1008Raw.__VSCALE_FACTORS)
-        return Hantek1008Raw.__VSCALE_FACTORS[vs_id - 1]
+        assert 1 <= vs_id <= len(Hantek1008CRaw.__VSCALE_FACTORS)
+        return Hantek1008CRaw.__VSCALE_FACTORS[vs_id - 1]
 
     @staticmethod
     def _vertical_scale_factor_to_id(vs_factor: float) -> int:
-        assert vs_factor in Hantek1008Raw.__VSCALE_FACTORS
-        return Hantek1008Raw.__VSCALE_FACTORS.index(vs_factor) + 1
+        assert vs_factor in Hantek1008CRaw.__VSCALE_FACTORS
+        return Hantek1008CRaw.__VSCALE_FACTORS.index(vs_factor) + 1
 
     def __send_set_vertical_scale(self, scale_factors: List[float]) -> None:
         """send the a2 command to set the vertical sample scale factor per channel.
         Only following values are allowed: 1.0, 0.125, 0.02 [TODO: check] Volt/Div.
         scale_factor must be an array of length 8 with a float scale value for each channel.
         Or a single float, than all channel will have that scale factor"""
-        assert all(x in Hantek1008Raw.__VSCALE_FACTORS for x in scale_factors)
-        scale_factor_id: List[int] = [Hantek1008Raw._vertical_scale_factor_to_id(sf) for sf in scale_factors]
+        assert all(x in Hantek1008CRaw.__VSCALE_FACTORS for x in scale_factors)
+        scale_factor_id: List[int] = [Hantek1008CRaw._vertical_scale_factor_to_id(sf) for sf in scale_factors]
         self.__send_cmd(0xa2, parameter=scale_factor_id, sec_till_response_request=0.2132)
 
     def __send_set_active_channels(self, active_channels: List[int]) -> None:
@@ -310,7 +310,7 @@ class Hantek1008Raw:
         # self.__send_cmd(0xa0, parameter=bytes.fromhex("08"))
         # self.__send_cmd(0xaa, parameter=bytes.fromhex("0101010101010101"))
         # activate all 8 channels
-        self.__send_set_active_channels(Hantek1008Raw.valid_channel_ids())
+        self.__send_set_active_channels(Hantek1008CRaw.valid_channel_ids())
 
         self.__send_set_time_div(500 * 1000)  # 500us, the default value in the windows software
 
@@ -325,11 +325,11 @@ class Hantek1008Raw:
         """get zero offsets for all channels and vscales"""
         self._zero_offsets = {}
         for vscale_id in range(1, 4):
-            vscale = Hantek1008Raw._vertical_scale_id_to_factor(vscale_id)
+            vscale = Hantek1008CRaw._vertical_scale_id_to_factor(vscale_id)
 
             self.__send_ping()
 
-            self.__send_set_vertical_scale([vscale] * Hantek1008Raw.channel_count())
+            self.__send_set_vertical_scale([vscale] * Hantek1008CRaw.channel_count())
 
             self.__send_cmd(0xa4, parameter=[0x01])
 
@@ -343,10 +343,10 @@ class Hantek1008Raw:
             samples2 = self.__send_c6_a6_command(0x02)
             samples3 = self.__send_c6_a6_command(0x03)
             samples = samples2 + samples3
-            shorts = Hantek1008Raw.__from_bytes_to_shorts(samples)
-            per_channel_data = Hantek1008Raw.__to_per_channel_lists(shorts, Hantek1008Raw.valid_channel_ids())
+            shorts = Hantek1008CRaw.__from_bytes_to_shorts(samples)
+            per_channel_data = Hantek1008CRaw.__to_per_channel_lists(shorts, Hantek1008CRaw.valid_channel_ids())
             zero_offset_per_channel = [sum(per_channel_data[ch]) / float(len(per_channel_data[ch]))
-                                       for ch in Hantek1008Raw.valid_channel_ids()]
+                                       for ch in Hantek1008CRaw.valid_channel_ids()]
             self._zero_offsets[vscale] = zero_offset_per_channel
 
     def _init3(self) -> None:
@@ -422,9 +422,9 @@ class Hantek1008Raw:
         self.__send_cmd(0xe6, parameter=[0x01], echo_expected=False, response_length=10)
         # response ~ e806e406e506e406e406
 
-        sample_shorts = Hantek1008Raw.__from_bytes_to_shorts(sample_response)
+        sample_shorts = Hantek1008CRaw.__from_bytes_to_shorts(sample_response)
 
-        per_channel_data = Hantek1008Raw.__to_per_channel_lists(sample_shorts, self.__active_channels)
+        per_channel_data = Hantek1008CRaw.__to_per_channel_lists(sample_shorts, self.__active_channels)
         return per_channel_data
 
     @staticmethod
@@ -433,19 +433,19 @@ class Hantek1008Raw:
 
     @staticmethod
     def valid_channel_ids() -> List[int]:
-        return list(range(0, Hantek1008Raw.channel_count()))
+        return list(range(0, Hantek1008CRaw.channel_count()))
 
     @staticmethod
     def valid_roll_mode_sampling_rates() -> List[float]:
-        return copy.deepcopy(list(Hantek1008Raw.__roll_mode_sampling_rate_to_id_dic.keys()))
+        return copy.deepcopy(list(Hantek1008CRaw.__roll_mode_sampling_rate_to_id_dic.keys()))
 
     @staticmethod
     def valid_burst_mode_ns_per_divs() -> List[float]:
-        return copy.deepcopy(list(Hantek1008Raw.__burst_mode_ns_per_div_to_id_dic.keys()))
+        return copy.deepcopy(list(Hantek1008CRaw.__burst_mode_ns_per_div_to_id_dic.keys()))
 
     @staticmethod
     def valid_vscale_factors() -> List[float]:
-        return copy.deepcopy(Hantek1008Raw.__VSCALE_FACTORS)
+        return copy.deepcopy(Hantek1008CRaw.__VSCALE_FACTORS)
 
     @staticmethod
     def actual_sampling_rate_factor(active_channel_count: int) -> float:
@@ -455,7 +455,7 @@ class Hantek1008Raw:
         of active channels.
         :return:
         """
-        assert 1 <= active_channel_count <= Hantek1008Raw.channel_count()
+        assert 1 <= active_channel_count <= Hantek1008CRaw.channel_count()
         return [4.56, 3.03, 2.27, 1.82, 1.51, 1.3, 1.14, 1.00][active_channel_count-1]
 
     def request_samples_roll_mode_single_row(self, **argv) \
@@ -467,12 +467,12 @@ class Hantek1008Raw:
     def request_samples_roll_mode(self, sampling_rate: int = 440) \
             -> Generator[Dict[int, List[int]], None, None]:
 
-        assert sampling_rate in Hantek1008Raw.__roll_mode_sampling_rate_to_id_dic, \
-            f"sample_rate must be in {Hantek1008Raw.__roll_mode_sampling_rate_to_id_dic.keys()}"
+        assert sampling_rate in Hantek1008CRaw.__roll_mode_sampling_rate_to_id_dic, \
+            f"sample_rate must be in {Hantek1008CRaw.__roll_mode_sampling_rate_to_id_dic.keys()}"
 
         try:
             # sets the sample rate: 18 -> 440 samples/sec/channel
-            sample_rate_id = Hantek1008Raw.__roll_mode_sampling_rate_to_id_dic[sampling_rate]
+            sample_rate_id = Hantek1008CRaw.__roll_mode_sampling_rate_to_id_dic[sampling_rate]
             self.__send_cmd(0xa3, parameter=[sample_rate_id])
 
             self.__send_ping(sec_till_start=0.0100)
@@ -506,7 +506,7 @@ class Hantek1008Raw:
                     ready_data_length -= 64
                     sample_response += sample_response_part
 
-                sample_shorts = Hantek1008Raw.__from_bytes_to_shorts(sample_response)
+                sample_shorts = Hantek1008CRaw.__from_bytes_to_shorts(sample_response)
                 # in rolling mode there is an additional 9th channel, with values around 1742
                 # this channel will not be past to the caller
                 per_channel_data = self.__to_per_channel_lists(sample_shorts, self.__active_channels,
@@ -520,8 +520,8 @@ class Hantek1008Raw:
         return copy.deepcopy(self._zero_offsets)
 
     def get_zero_offset(self, channel_id: int, vscale: Optional[float] = None) -> Optional[float]:
-        assert channel_id in Hantek1008Raw.valid_channel_ids()
-        assert vscale is None or vscale in Hantek1008Raw.valid_vscale_factors()
+        assert channel_id in Hantek1008CRaw.valid_channel_ids()
+        assert vscale is None or vscale in Hantek1008CRaw.valid_vscale_factors()
 
         # if this methode is called before init/connect zero_offset will be null
         if self._zero_offsets is None:
@@ -546,7 +546,7 @@ class Hantek1008Raw:
         # TODO speed_in_rpm must be round to valid values, dont know how
         def compute_pulse_length(speed_in_rpm: int, bits_per_wave: int = 8) -> int:
             assert 1 <= speed_in_rpm <= 750_000
-            assert 1 <= bits_per_wave <= Hantek1008Raw.get_generator_waveform_max_length()
+            assert 1 <= bits_per_wave <= Hantek1008CRaw.get_generator_waveform_max_length()
             # TODO values great then 750_000 are possible too, but then the decoding changes (firt paramter gets a 02)
             # and this other decoding is not completely understood
             return int(((8 * 360_000_000) / bits_per_wave) / speed_in_rpm)
@@ -569,7 +569,7 @@ class Hantek1008Raw:
         # example for waveform: F0 0F F0 0F
         # -> switches the output of every channel at every pulse
         # ch1 to ch4 start with down, ch5 to ch8 start up
-        assert len(waveform) <= Hantek1008Raw.get_generator_waveform_max_length()
+        assert len(waveform) <= Hantek1008CRaw.get_generator_waveform_max_length()
         assert len(waveform) <= 62, "Currently not supported"
         assert all(b <= 0b1111_1111 for b in waveform)
 
@@ -635,7 +635,7 @@ class Hantek1008Raw:
         return copy.deepcopy(list(self.__vertical_scale_factors))
 
     def get_vscale(self, channel_id: int) -> float:
-        assert channel_id in Hantek1008Raw.valid_channel_ids()
+        assert channel_id in Hantek1008CRaw.valid_channel_ids()
         return self.__vertical_scale_factors[channel_id]
 
     def get_active_channels(self) -> List[int]:
@@ -677,9 +677,9 @@ CorrectionDataType = List[Dict[float, Dict[float, float]]]
 ZeroOffsetShiftCompensationFunctionType = Callable[[int, float, float], float]
 
 
-class Hantek1008(Hantek1008Raw):
+class Hantek1008(Hantek1008CRaw):
     """
-    A more advanced version of Hantek1008Raw. It features raw values to voltage conversion
+    A more advanced version of Hantek1008CRaw. It features raw values to voltage conversion
     , usage of external generated calibration data and zero offset shift calibration compensation.
     """
 
@@ -692,21 +692,21 @@ class Hantek1008(Hantek1008Raw):
                  zero_offset_shift_compensation_function_time_offset_sec: int = 0) -> None:
 
         if active_channels is None:
-            active_channels = Hantek1008Raw.valid_channel_ids()
+            active_channels = Hantek1008CRaw.valid_channel_ids()
         if correction_data is None:
-            correction_data = [{} for _ in range(Hantek1008Raw.channel_count())]
+            correction_data = [{} for _ in range(Hantek1008CRaw.channel_count())]
 
-        assert len(correction_data) == Hantek1008Raw.channel_count()
+        assert len(correction_data) == Hantek1008CRaw.channel_count()
         assert all(isinstance(x, dict) for x in correction_data)
 
         assert zero_offset_shift_compensation_channel is None or zero_offset_shift_compensation_function is None
         if zero_offset_shift_compensation_channel is not None:
             assert zero_offset_shift_compensation_channel not in active_channels
-            assert zero_offset_shift_compensation_channel in Hantek1008Raw.valid_channel_ids()
+            assert zero_offset_shift_compensation_channel in Hantek1008CRaw.valid_channel_ids()
             assert zero_offset_shift_compensation_channel not in active_channels
             active_channels = active_channels + [zero_offset_shift_compensation_channel]
 
-        Hantek1008Raw.__init__(self, ns_per_div, vertical_scale_factor, active_channels)
+        Hantek1008CRaw.__init__(self, ns_per_div, vertical_scale_factor, active_channels)
 
         self.__correction_data: CorrectionDataType = copy.deepcopy(correction_data)
 
@@ -730,7 +730,7 @@ class Hantek1008(Hantek1008Raw):
         # TODO problem zero offset different on different vscales?
         assert self.__zero_offset_shift_compensation_channel is not None
         assert self._zero_offsets is not None
-        zoscc_vscale = Hantek1008Raw.get_vscale(self, self.__zero_offset_shift_compensation_channel)
+        zoscc_vscale = Hantek1008CRaw.get_vscale(self, self.__zero_offset_shift_compensation_channel)
         assert zoscc_vscale == 1.0  # is this really necessary?
         zoscc_zero_offset = self._zero_offsets[zoscc_vscale][self.__zero_offset_shift_compensation_channel]
 
@@ -746,9 +746,9 @@ class Hantek1008(Hantek1008Raw):
     @overrides
     def get_zero_offset(self, channel_id: int, vscale: Optional[float] = None) -> float:
         if vscale is None:
-            vscale = Hantek1008Raw.get_vscale(self, channel_id)
+            vscale = Hantek1008CRaw.get_vscale(self, channel_id)
 
-        zero_offset = Hantek1008Raw.get_zero_offset(self, channel_id, vscale)
+        zero_offset = Hantek1008CRaw.get_zero_offset(self, channel_id, vscale)
         assert zero_offset is not None
         if self.__zero_offset_shift_compensation_channel is not None:
             zero_offset += self.__zero_offset_shift_compensation_value
@@ -769,9 +769,9 @@ class Hantek1008(Hantek1008Raw):
             -> Generator[Dict[int, Union[List[float], List[int]]], None, None]:
 
         assert mode in ["volt", "raw", "volt+raw"]
-        active_channel_count = len(Hantek1008Raw.get_active_channels(self))
+        active_channel_count = len(Hantek1008CRaw.get_active_channels(self))
 
-        for raw_per_channel_data in Hantek1008Raw.request_samples_roll_mode(self, sampling_rate):
+        for raw_per_channel_data in Hantek1008CRaw.request_samples_roll_mode(self, sampling_rate):
             assert len(raw_per_channel_data) == active_channel_count
             yield self.__process_raw_per_channel_data(raw_per_channel_data, mode)
 
@@ -779,7 +779,7 @@ class Hantek1008(Hantek1008Raw):
         if self.__zero_offset_shift_compensation_channel is not None:
             if self.__zero_offset_shift_compensation_channel in per_channel_data:
                 del per_channel_data[self.__zero_offset_shift_compensation_channel]
-            if self.__zero_offset_shift_compensation_channel + Hantek1008Raw.channel_count() in per_channel_data:
+            if self.__zero_offset_shift_compensation_channel + Hantek1008CRaw.channel_count() in per_channel_data:
                 del per_channel_data[self.__zero_offset_shift_compensation_channel]
 
     def __extract_channel_volts(self, per_channel_data: Dict[int, List[int]]) -> Dict[int, List[float]]:
@@ -794,15 +794,15 @@ class Hantek1008(Hantek1008Raw):
         vscale = 1.0
         zero_offset = 2048
 
-        if channel_id < Hantek1008Raw.channel_count():
-            vscale = Hantek1008Raw.get_vscale(self, channel_id)
+        if channel_id < Hantek1008CRaw.channel_count():
+            vscale = Hantek1008CRaw.get_vscale(self, channel_id)
             # get right zero offset for that channel and the used vertical scale factor (vscale)
             zero_offset = self.get_zero_offset(channel_id, vscale)
 
         scale = 0.01 * vscale
 
         # accuracy = -int(math.log10(scale)) + 2  # amount of digits after the dot that is not nearly random
-        accuracy = [3, 4, 5][Hantek1008Raw._vertical_scale_factor_to_id(vscale) - 1]
+        accuracy = [3, 4, 5][Hantek1008CRaw._vertical_scale_factor_to_id(vscale) - 1]
         return [round(
             self.__calc_correction_factor(v - zero_offset, channel_id, vscale) * (v - zero_offset) * scale
             , ndigits=accuracy)
@@ -817,7 +817,7 @@ class Hantek1008(Hantek1008Raw):
         :param vscale:
         :return:
         """
-        if channel_id not in Hantek1008Raw.valid_channel_ids() \
+        if channel_id not in Hantek1008CRaw.valid_channel_ids() \
                 or vscale not in self.__correction_data[channel_id]:
             return 1.0
 
@@ -853,7 +853,7 @@ class Hantek1008(Hantek1008Raw):
         if "volt" in mode:
             result.update(self.__extract_channel_volts(raw_per_channel_data))
         if "raw" in mode:
-            raw_channel_offset = Hantek1008Raw.channel_count() if mode == "volt+raw" else 0
+            raw_channel_offset = Hantek1008CRaw.channel_count() if mode == "volt+raw" else 0
             result.update({ch + raw_channel_offset: values
                            for ch, values in raw_per_channel_data.items()})
         self.__remove_zosc_channel_data(result)
@@ -864,5 +864,5 @@ class Hantek1008(Hantek1008Raw):
                                    ) -> Dict[int, Union[List[int], List[float]]]:
         assert self.__zero_offset_shift_compensation_channel is None, \
             "zero offset shift compensation is not implemented for burst mode"
-        raw_per_channel_data = Hantek1008Raw.request_samples_burst_mode(self)
+        raw_per_channel_data = Hantek1008CRaw.request_samples_burst_mode(self)
         return self.__process_raw_per_channel_data(raw_per_channel_data, mode)
