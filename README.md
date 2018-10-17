@@ -1,4 +1,7 @@
-# Hantek1008C
+# Hantek 1008C
+##
+# www.hantek.com.cn
+##
 # меняем проект c 1008 под осцилограф 1008C :)
 
 * forked project *
