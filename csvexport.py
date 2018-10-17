@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from hantek1008 import Hantek1008, CorrectionDataType, ZeroOffsetShiftCompensationFunctionType
+from hantek1008c import Hantek1008, CorrectionDataType, ZeroOffsetShiftCompensationFunctionType
 from typing import Union, Optional, List, Dict, Any, IO, TextIO
 import typing
 import logging as log
