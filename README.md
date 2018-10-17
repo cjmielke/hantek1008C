@@ -1,6 +1,4 @@
-# Hantek 1008C
-##
-# [hantek 1088c](http://www.hantek.com.cn/en/ProductDetail_13_13170.html)
+# [hantek 1008c](http://www.hantek.com.cn/en/ProductDetail_13_13170.html)
 ##
 
 # меняем проект c 1008 под осцилограф 1008C :)
