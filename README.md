@@ -1,30 +1,24 @@
 # [hantek 1008c](http://www.hantek.com.cn/en/ProductDetail_13_13170.html)
-##
 
+# проект на осцилограф 1008 от фирмы Hantek
 # меняем проект c 1008 под осцилограф 1008C :)
 
-* forked project *
 
-This project provides the ability to use Hantek 1008C USB-oscilloscopes without the proprietary software on Linux and Windows (not tested). 
-You can include the Hantek1008C from 'hantek1008c.py' class in your project, to get access to the features of the device, or use the 
-csvexport.py Python application to gain data and save it to a file.
+пока-что работает только запись пакетов в файл.
 
-### Usageexample of csvexport.py:
-`python3 csvexport.py mydata.csv -s 1 2`
-This will write the measured data of channel 1 and 2 to 'mydata.csv' until you press CTRL+C to stop the measurement.
+Примеры для использования `csvexport.py`:
+	`python3 csvexport.py mydata.csv -s 1 2`	запись с двух каналов (*нужно проверить)
 
-### Help Options:
-`python3 csvexport.py --help`
-This will show you all the available options/parameters and explains them in-depth.
+TODO:
+	- не разобрался как данны воспроизводить с программой 'analysis.py' в проекте.
 
+### Для работы следует установить:
+* Python >= 3.6
+* pyusb;overrides
+* добавить в файл "/etc/udev/rules.d/99-hantek1008.rules" with content => 
+	ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0783", ATTR{idProduct}=="5725", MODE="0666"
+* sudo udevadm control -R
+* переподключить устройство в USB-порт
 
-### Notes:
-* Requires Python >= 3.6
-* Requires *pyusb* and *overrides* (install it using pip: `pip3 install pyusb overrides`)
-* If the software can not access the usb device because of lacking accessright, do the following (tested on linux/fedora):
-  1. Create file "/etc/udev/rules.d/99-hantek1008.rules" with content:
-     ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0783", ATTR{idProduct}=="5725", MODE="0666"
-  2. Then `sudo udevadm control -R`
-  3. Replug the device
 
 
