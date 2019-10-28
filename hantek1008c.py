@@ -353,26 +353,27 @@ class Hantek1008CRaw:
 		self.__send_cmd(0xf6, sec_till_response_request=0.2132)
 
 		response = self.__send_cmd(0xe5, echo_expected=False, response_length=2)
-		assert response == bytes.fromhex("dc06")	# 1008C
+		print(response)
+		#assert response == bytes.fromhex("dc06")	# 1008C
 		# assert response == bytes.fromhex("dc06")  # 1008
 
 		response = self.__send_cmd(0xf7, echo_expected=False, response_length=64)
-		assert response == bytes.fromhex(   "20fda7fba7fa20f98d008b0086008b008e008c0089008c0007020002f101fe01"
-											"0b020502f901030279036f0358036b037f0375036403740382ff85ff88ff85ff")
+		#assert response == bytes.fromhex(   "20fda7fba7fa20f98d008b0086008b008e008c0089008c0007020002f101fe01"
+		#									"0b020502f901030279036f0358036b037f0375036403740382ff85ff88ff85ff")
 		# assert response == bytes.fromhex( "2cfd8ffb54fa2ef878007a007b00780079007a0079007800b801bf01c301ba01"
 		#                                   "bb01be01b701b801f90203030803fb02fc020003f502f80294ff92ff8fff93ff")
 
 		response = self.__send_cmd(0xf8, echo_expected=False, response_length=64)
 		# assert response == bytes.fromhex(	"92ff91ff96ff94ffc9fec4febdfec8fec7fec2fecffec9fe4cfe45fe3afe4afe"
 		#									"48fe42fe54fe4dfe70ff70ff71ff70ff71ff71ff72ff71ff7efe7bfe7afe7efe")
-		assert response == bytes.fromhex(	"81ff83ff87ff84ff88fe90fe9ffe94fe84fe8bfe96fe8dfee9fdf7fd0dfefcfd"
-											"e6fdf0fd00fef4fd62ff60ff63ff61ff61ff64ff61ff60ff49fe47fe4efe4bfe")
+		#assert response == bytes.fromhex(	"81ff83ff87ff84ff88fe90fe9ffe94fe84fe8bfe96fe8dfee9fdf7fd0dfefcfd"
+		#									"e6fdf0fd00fef4fd62ff60ff63ff61ff61ff64ff61ff60ff49fe47fe4efe4bfe")
 
 		response = self.__send_cmd(0xfa, echo_expected=False, response_length=56)
 		# assert response == bytes.fromhex(	"7dfe7efe80fe7ffe90019401930192018f01900191018f0195029b0299029802"
 		#								 	"930294029702940290fd89fd84fd90fd8dfd8cfd94fd91fd")
-		assert response == bytes.fromhex(	"4afe54fe48fe47feb201b101af01ad01af01aa01b201af01c802c802c402c102"
-											"c602bd02c902c60221fd1dfd29fd28fd25fd3cfd1dfd22fd")
+		#assert response == bytes.fromhex(	"4afe54fe48fe47feb201b101af01ad01af01aa01b201af01c802c802c402c102"
+		#									"c602bd02c902c60221fd1dfd29fd28fd25fd3cfd1dfd22fd")
 
 		self.__send_set_time_div(self.__ns_per_div)
 
